@@ -1,0 +1,222 @@
+<html>
+<head>
+<title>Superman Superball</title>
+<script id="s" type="text/javascript">
+
+	var t_i = 0.0006;
+	var t_total = 100;
+
+	var g = -9.8;
+
+	var m = 0.05;
+	var v = -344;
+	var M = 80;
+	var V = 0.215;
+
+	var ctx;
+
+	var chart_width = window.innerWidth - 20;
+	var chart_height = window.innerHeight - 250;
+
+	var x_scale = 50;
+	var y_scale = chart_height / 34;
+
+	function init(){
+
+		var chart_div = document.getElementById("chart_div");
+		chart_div.style.width = chart_width;
+		chart_div.style.height = chart_height;
+
+		var c = document.getElementById("chart");
+
+		c.setAttribute("width", t_total * x_scale);
+		c.style.display = "none";
+
+		ctx = c.getContext("2d");
+		ctx.lineWidth = 1;
+
+		setTimeout(function(){
+			for(var i=1; i <= 30; i += 0.5){
+			    drop_ball(i, (i == 7.5) ? "#999" : rainbow(i));
+			}
+		}, 10);
+
+		c.style.display = "block";
+
+	}
+
+
+	function drop_ball(starting_height, col){
+
+		var dB = starting_height;
+		var dS = starting_height;
+
+		v = -344;
+		V = 0.215;
+
+		var t = t_i;
+		var t_b = t;
+		var t_s = t;
+
+		var s_current_x = 0;
+		var s_current_y = 0;
+
+		var s_next_x = 0;
+		var s_next_y = 0;
+
+		var b_current_x = 0;
+		var b_current_y = 0;
+
+		var b_next_x = 0;
+		var b_next_y = 0;
+
+		ctx.strokeStyle = col;
+		ctx.beginPath();
+		ctx.moveTo(s_current_x * x_scale, chart_height - (dS * y_scale) - (s_current_y * y_scale));
+
+		while(t < t_total){
+
+			// ball
+			b_next_x = t;
+			b_next_y = (v * t_b) + (g * Math.pow(t_b, 2) * .5)
+
+			/*
+				ctx.strokeStyle = "#00FF00";
+				ctx.beginPath();
+				ctx.moveTo(b_current_x * x_scale, chart_height - (dB * y_scale) - (b_current_y * y_scale));
+				ctx.lineTo(b_next_x * x_scale, chart_height - (dB * y_scale) - (b_next_y * y_scale));
+				ctx.stroke();
+			*/
+
+			b_current_x = b_next_x;
+			b_current_y = b_next_y;
+
+
+			// superman
+			s_next_x = t;
+			s_next_y = (V * t_s) + (g * Math.pow(t_s, 2) * .5)
+
+			// draw
+			ctx.lineTo(s_next_x * x_scale, chart_height - (dS * y_scale) - (s_next_y * y_scale));
+
+			s_current_x = s_next_x;
+			s_current_y = s_next_y;
+
+			// check collisions
+			if(dB + b_current_y >= dS + s_current_y){
+
+				// top
+				dB = dB + b_current_y;
+				b_current_y = 0
+
+				dS = dS + s_current_y;
+				s_current_y = 0
+
+				dB = dS;
+
+				// calculate final velocities
+				var v_final = v + (g * t_b);
+				var V_final = V + (g * t_s);
+
+				// calculate new velocities
+				v = (((m - M)/(m + M)) * v_final) + (((2 * M)/(m + M)) * V_final);
+				V = (((M - m)/(m + M)) * V_final) + (((2 * m)/(m + M)) * v_final);
+
+				// reset local times
+				t_b = 0;
+				t_s = 0;
+
+			}else{
+
+				if(dB + b_current_y < 0){
+
+					// bottom
+					v = v + (g * t_b);
+					v = -v;
+					dB = 0;
+					b_current_y = 0;
+					t_b = 0;
+
+				}
+
+			}
+
+			// move forward
+			t += t_i;
+			t_b += t_i;
+			t_s += t_i;
+		}
+
+		ctx.stroke();
+	}
+
+
+	function rainbow(i){
+		var hue = i * 20;
+		return 'hsl(' + hue + ', 80%, 60%)';
+	}
+	</script>
+	
+<script type="text/javascript">
+	function viewSource(){;
+	    var source = "";
+	    source += document.getElementById('s').innerHTML;
+	    source = source.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+	    source = "<pre>"+source+"</pre>";
+	    sourceWindow = popupCenter("about:blank", "Source", screen.width/2, screen.height/2);//window.open('','Source of page','height=' + screen.height/2 + ',width=' + screen.width/2 + ',scrollbars=1,resizable=1');
+	    sourceWindow.document.write(source);
+	    sourceWindow.document.close(); 
+	    if(window.focus) sourceWindow.focus();
+	}  
+
+	function popupCenter(url, title, w, h){
+	    const dualScreenLeft = window.screenLeft !==  undefined ? window.screenLeft : window.screenX;
+	    const dualScreenTop = window.screenTop !==  undefined   ? window.screenTop  : window.screenY;
+	
+	    const width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
+	    const height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
+	
+	    const systemZoom = width / window.screen.availWidth;
+	    const left = (width - w) / 2 / systemZoom + dualScreenLeft
+	    const top = (height - h) / 2 / systemZoom + dualScreenTop
+	    const newWindow = window.open(url, title, 
+	      `
+	      scrollbars=yes,
+	      width=${w / systemZoom}, 
+	      height=${h / systemZoom}, 
+	      top=${top}, 
+	      left=${left}
+	      `
+	    )
+	
+	    if (window.focus) newWindow.focus();
+	    
+	    return newWindow;
+	}
+
+</script>    
+</head>
+<body onload="init()" style="margin:0px;padding:0px;overflow:hidden;">
+<center>
+    <div id="chart_div" style="width:1800px; height: 750px; padding: 0px; overflow-x: auto; overflow-y: hidden; border:0px">
+        <canvas id="chart" width="0" height="750" style="border:1px solid #d3d3d3; border: 0px" />
+    </div>
+    <div style="font-size: 11px; margin-top: 20px">
+        mv + MV = 0<br />
+        (.05 * -344) + (80 * V) = 0<br />
+        V = .215 m/s (superman speed at impact)<br /><br />
+
+        d = Vt + gt²/2<br />
+        0 = (.215 * t) + (-9.8 * t² * .5)<br />
+        t = 0 or -2V/g = .044s (moves up and down 2.38 mm)<br /><br />
+
+        d = vt + gt²/2<br />
+        (344 * .022) + (-9.8 * .022² * .5)<br /><br />
+
+        = 7.55m<br /><br />
+        
+    </div>
+    <button type ="button" onclick="viewSource()" style="background-color: #333333;color: white;">View Source</button>
+</center>
+</body>
+</html>
